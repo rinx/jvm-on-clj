@@ -277,7 +277,8 @@
     (execute constant-pool code-attributes)))
 
 (defn -main [& args]
-  (let [whole-bytes (slurp-bytes "examples/Hello.class")
+  (let [filename (or (first args) "examples/Hello.class")
+        whole-bytes (slurp-bytes filename)
         read-class (read-class whole-bytes)
         constant-pool (:constant-pool read-class)
         methods (:methods-info read-class)]

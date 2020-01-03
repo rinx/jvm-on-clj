@@ -6,7 +6,12 @@ currently, it only supports to run "Hello.java".
 
 ## Build
 
+    $ lein uberjar
     $ lein native-image
+
+## Benchmark
+
+    $ bash bench.sh
 
 ## License
 
