@@ -4,6 +4,10 @@ inspired by [php-java](https://github.com/php-java/php-java).
 
 currently, it only supports to run "Hello.java".
 
+## Build
+
+    $ lein native-image
+
 ## License
 
 Copyright © 2020 rinx
