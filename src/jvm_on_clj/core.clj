@@ -1,5 +1,6 @@
 (ns jvm-on-clj.core
   (:require
+   [clojure.pprint]
    [clojure.string :as string])
   (:gen-class))
 
@@ -15,7 +16,7 @@
                        snd (second args)]
                    (f snd)))}}})
 
-(def op-stack (atom []))
+(def op-stack (atom '()))
 
 (defn slurp-bytes
   "Slurp the bytes from a slurpable thing"
@@ -244,15 +245,14 @@
             obj (resolve-idx constant-pool idx)
             arg-count (count (re-seq #";" (get-in obj [:name-and-type :descriptor :string])))
             op-stack' (deref op-stack)
-            args (reverse (take arg-count (reverse op-stack')))
+            args (take arg-count op-stack')
             args-entity (map #(get-in % [:string :string]) args)
-            callee-class (first (drop arg-count (reverse op-stack')))
+            callee-class (first (drop arg-count op-stack'))
             callee-class-entity (get java-classes (get-in callee-class [:class :name :string]))
             callee-method-entity (:fp (get-in callee-class-entity
                                               [:static-fields
-                                               (get-in callee-class [:name-and-type :name :string])]))
-            ]
-        (swap! op-stack #(reverse (drop arg-count (reverse %))))
+                                               (get-in callee-class [:name-and-type :name :string])]))]
+        (swap! op-stack #(drop (inc arg-count) %))
         #_(clojure.pprint/pprint obj)
         (apply callee-method-entity args-entity))
       "0xb1" ;; return
@@ -282,6 +282,7 @@
         read-class (read-class whole-bytes)
         constant-pool (:constant-pool read-class)
         methods (:methods-info read-class)]
+    (reset! op-stack '())
     (->> methods
          (map (fn [m]
                 (when (= (:name m) "main")
@@ -290,6 +291,7 @@
     read-class))
 
 (comment
+  (def args ["examples/Hello2.class"])
   (bytes->int (byte-array (take 2 (drop 8 (slurp-bytes "examples/Hello.class")))))
 
   (println (bytes->hex (slurp-bytes "examples/Hello.class")))
